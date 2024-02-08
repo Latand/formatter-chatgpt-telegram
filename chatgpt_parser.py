@@ -65,7 +65,7 @@ def split_by_tag(out_text: str, md_tag: str, html_tag: str) -> str:
     return tag_pattern.sub(r"<{}>\1</{}>".format(html_tag, html_tag), out_text)
 
 
-def telegram_format(text: str) -> tuple[str, str | None]:
+def telegram_format(text: str) -> str:
     """
     Converts markdown in the provided text to HTML supported by Telegram.
     """
@@ -76,11 +76,14 @@ def telegram_format(text: str) -> tuple[str, str | None]:
     # Step 2: Escape HTML special characters in the output text
     output = output.replace("<", "&lt;").replace(">", "&gt;")
 
-    # Step 3: Apply markdown transformations here...
-    output = re.sub(r"`(.*?)`", r"<code>\1</code>", output)  # Inline code
-    output = re.sub(
-        r"\*\*\*(.*?)\*\*\*", r"<b><i>\1</i></b>", output
-    )  # Nested bold and italic
+    # Inline code
+    output = re.sub(r"`(.*?)`", r"<code>\1</code>", output)
+
+    # Nested Bold and Italic
+    output = re.sub(r"\*\*\*(.*?)\*\*\*", r"<b><i>\1</i></b>", output)
+
+    # Process markdown formatting tags (bold, underline, italic, strikethrough)
+    # and convert them to their respective HTML tags
     output = split_by_tag(output, "**", "b")
     output = split_by_tag(output, "__", "u")
     output = split_by_tag(output, "_", "i")
@@ -88,10 +91,9 @@ def telegram_format(text: str) -> tuple[str, str | None]:
     output = split_by_tag(output, "~~", "s")
     output = re.sub(r"\[(.*?)\]\((.*?)\)", r'<a href="\2">\1</a>', output)  # Links
     output = re.sub(r"^\s*[\-\*] (.+)", r"• \1", output, flags=re.MULTILINE)  # Lists
-    output = re.sub(
-        r"^\s*#+ (.+)", r"<b>\1</b>", output, flags=re.MULTILINE
-    )  # Headings
+
+    output = re.sub(r"^\s*#+ (.+)", r"<b>\1</b>", output, flags=re.MULTILINE)
 
     # Step 4: Reinsert the converted HTML code blocks
     output = reinsert_code_blocks(output, code_blocks)
-    return output, "HTML"
+    return output
