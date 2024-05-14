@@ -89,11 +89,12 @@ def telegram_format(text: str) -> str:
     output = split_by_tag(output, "_", "i")
     output = split_by_tag(output, "*", "i")
     output = split_by_tag(output, "~~", "s")
+    output = re.sub(r'【[^】]+】', '', output)
     output = re.sub(r"\[(.*?)\]\((.*?)\)", r'<a href="\2">\1</a>', output)  # Links
     output = re.sub(r"^\s*[\-\*] (.+)", r"• \1", output, flags=re.MULTILINE)  # Lists
-
     output = re.sub(r"^\s*#+ (.+)", r"<b>\1</b>", output, flags=re.MULTILINE)
 
     # Step 4: Reinsert the converted HTML code blocks
     output = reinsert_code_blocks(output, code_blocks)
-    return output
+    format = "HTML"  # Assuming the format is always HTML. Without this pytest crashes
+    return output, format
