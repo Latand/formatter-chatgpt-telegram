@@ -28,9 +28,19 @@ To use the Markdown to Telegram HTML Parser in your ChatGPT bot, integrate the p
 
 Simply call the `telegram_format(text: str) -> str` function with your Markdown-formatted text as input to receive the converted HTML output ready for use with the Telegram Bot API.
 
+## Installation
+
+You can install the package using pip:
+
+```sh
+pip install chatgpt-md-converter
+```
+
 ## Example
 
 ```python
+from chatgpt_md_converter import telegram_format
+
 formatted_text = telegram_format("Here is some **bold**, __underline__, and `inline code`.\n```python\nprint('Hello, world!')\n```")
 print(formatted_text)
 ```
