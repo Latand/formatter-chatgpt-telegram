@@ -254,3 +254,145 @@ def test_combined_formatting_with_lists():
     assert (
         output.strip() == expected_output.strip()
     ), "Failed handling combined formatting with lists"
+
+
+def test_md_large_example():
+    input_text = """
+1. **Headings:**
+# H1 Heading
+## H2 Heading
+### H3 Heading
+#### H4 Heading
+##### H5 Heading
+###### H6 Heading
+
+2. **Emphasis:**
+
+*Italic text* or _Italic text_
+
+**Bold text** or __Underline text__
+
+***Bold and italic text*** or ___Underline and italic text___
+
+3. **Lists:**
+   - **Unordered List:**
+
+   - Item 1
+   - Item 2
+     - Subitem 1
+     - Subitem 2
+   
+   - **Ordered List:**
+
+   1. First item
+   2. Second item
+      1. Subitem 1
+      2. Subitem 2
+
+4. **Links:**
+
+[OpenAI](https://www.openai.com)
+
+5. **Images:**
+
+![Alt text for image](URL_to_image)
+![Alt text for image](URL_to_імедж)
+
+6. **Blockquotes:**
+
+> This is a blockquote.
+> It can span multiple lines.
+
+7. **Inline Code:**
+
+Here is some `inline code`.
+
+8. **Code Blocks:**
+
+```python
+def example_function():
+    print("Hello World")
+```
+
+9. **Tables:**
+
+| Header 1 | Header 2 |
+|----------|----------|
+| Row 1 Col 1 | Row 1 Col 2 |
+| Row 2 Col 1 | Row 2 Col 2 |
+
+10. **Horizontal Rule:**
+
+---
+"""
+    expected_output = """
+1. <b>Headings:</b>
+<b>H1 Heading</b>
+<b>H2 Heading</b>
+<b>H3 Heading</b>
+<b>H4 Heading</b>
+<b>H5 Heading</b>
+<b>H6 Heading</b>
+
+2. <b>Emphasis:</b>
+
+<i>Italic text</i> or <i>Italic text</i>
+
+<b>Bold text</b> or <u>Underline text</u>
+
+<b><i>Bold and italic text</i></b> or <u><i>Underline and italic text</i></u>
+
+3. <b>Lists:</b>
+   • <b>Unordered List:</b>
+
+   • Item 1
+   • Item 2
+     • Subitem 1
+     • Subitem 2
+   
+   • <b>Ordered List:</b>
+
+   1. First item
+   2. Second item
+      1. Subitem 1
+      2. Subitem 2
+
+4. <b>Links:</b>
+
+<a href="https://www.openai.com">OpenAI</a>
+
+5. <b>Images:</b>
+
+<a href="URL_to_image">Alt text for image</a>
+<a href="URL_to_імедж">Alt text for image</a>
+
+6. <b>Blockquotes:</b>
+
+<blockquote>This is a blockquote.
+It can span multiple lines.</blockquote>
+
+7. <b>Inline Code:</b>
+
+Here is some <code>inline code</code>.
+
+8. <b>Code Blocks:</b>
+
+<pre><code class="language-python">def example_function():
+    print("Hello World")
+</code></pre>
+
+9. <b>Tables:</b>
+
+| Header 1 | Header 2 |
+|----------|----------|
+| Row 1 Col 1 | Row 1 Col 2 |
+| Row 2 Col 1 | Row 2 Col 2 |
+
+10. <b>Horizontal Rule:</b>
+
+---
+"""
+    output = telegram_format(input_text)
+    assert (
+        output.strip() == expected_output.strip()
+    ), "Failed handling large markdown example"

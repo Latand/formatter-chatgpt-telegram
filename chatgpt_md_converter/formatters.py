@@ -1,9 +1,6 @@
-import re
-
-
 def combine_blockquotes(text: str) -> str:
     """
-    Combines multiline blockquotes into a single blockquote.
+    Combines multiline blockquotes into a single blockquote while keeping the \n characters.
     """
     lines = text.split("\n")
     combined_lines = []
@@ -17,7 +14,7 @@ def combine_blockquotes(text: str) -> str:
         else:
             if in_blockquote:
                 combined_lines.append(
-                    "<blockquote>" + " ".join(blockquote_lines) + "</blockquote>"
+                    "<blockquote>" + "\n".join(blockquote_lines) + "</blockquote>"
                 )
                 blockquote_lines = []
                 in_blockquote = False
@@ -25,7 +22,7 @@ def combine_blockquotes(text: str) -> str:
 
     if in_blockquote:
         combined_lines.append(
-            "<blockquote>" + " ".join(blockquote_lines) + "</blockquote>"
+            "<blockquote>" + "\n".join(blockquote_lines) + "</blockquote>"
         )
 
     return "\n".join(combined_lines)

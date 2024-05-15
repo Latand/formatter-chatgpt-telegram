@@ -26,6 +26,7 @@ def telegram_format(text: str) -> str:
 
     # Nested Bold and Italic
     output = re.sub(r"\*\*\*(.*?)\*\*\*", r"<b><i>\1</i></b>", output)
+    output = re.sub(r"\_\_\_(.*?)\_\_\_", r"<u><i>\1</i></u>", output)
 
     # Process markdown formatting tags (bold, underline, italic, strikethrough)
     # and convert them to their respective HTML tags
@@ -39,13 +40,13 @@ def telegram_format(text: str) -> str:
     output = re.sub(r"【[^】]+】", "", output)
 
     # Convert links
-    output = re.sub(r"\[(.*?)\]\((.*?)\)", r'<a href="\2">\1</a>', output)
-
-    # Convert lists
-    output = re.sub(r"^\s*[\-\*] (.+)", r"• \1", output, flags=re.MULTILINE)
+    output = re.sub(r"!?\[(.*?)\]\((.*?)\)", r'<a href="\2">\1</a>', output)
 
     # Convert headings
     output = re.sub(r"^\s*#+ (.+)", r"<b>\1</b>", output, flags=re.MULTILINE)
+
+    # Convert unordered lists, preserving indentation
+    output = re.sub(r"^(\s*)[\-\*] (.+)", r"\1• \2", output, flags=re.MULTILINE)
 
     # Step 4: Reinsert the converted HTML code blocks
     output = reinsert_code_blocks(output, code_blocks)

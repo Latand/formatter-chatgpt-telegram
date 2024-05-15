@@ -16,6 +16,7 @@ def split_by_tag(out_text: str, md_tag: str, html_tag: str) -> str:
     Splits the text by markdown tag and replaces it with the specified HTML tag.
     """
     tag_pattern = re.compile(
-        r"{}(.*?){}".format(re.escape(md_tag), re.escape(md_tag)), re.DOTALL
+        r"(?<!\w){}(.*?){}(?!\w)".format(re.escape(md_tag), re.escape(md_tag)),
+        re.DOTALL,
     )
     return tag_pattern.sub(r"<{}>\1</{}>".format(html_tag, html_tag), out_text)
