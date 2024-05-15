@@ -1,9 +1,9 @@
-from chatgpt_parser import split_by_tag, telegram_format
+from chatgpt_md_converter.telegram_formatter import telegram_format
 
 
 def test_split_by_tag_bold():
     text = "This is **bold** text"
-    assert split_by_tag(text, "**", "b") == "This is <b>bold</b> text"
+    assert telegram_format(text) == "This is <b>bold</b> text"
 
 
 def test_telegram_format_italic():

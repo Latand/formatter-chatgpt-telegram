@@ -1,0 +1,13 @@
+LICENSE
+setup.py
+chatgpt_md_converter/__init__.py
+chatgpt_md_converter/converters.py
+chatgpt_md_converter/extractors.py
+chatgpt_md_converter/formatters.py
+chatgpt_md_converter/helpers.py
+chatgpt_md_converter/telegram_formatter.py
+chatgpt_md_converter.egg-info/PKG-INFO
+chatgpt_md_converter.egg-info/SOURCES.txt
+chatgpt_md_converter.egg-info/dependency_links.txt
+chatgpt_md_converter.egg-info/top_level.txt
+tests/test_parser.py
