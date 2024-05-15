@@ -1,7 +1,17 @@
 import re
 
 
-def ensure_closing_delimiters(text: str):
+def convert_html_chars(text: str) -> str:
+    """
+    Converts HTML reserved symbols to their respective character references.
+    """
+    text = text.replace("&", "&amp;")
+    text = text.replace("<", "&lt;")
+    text = text.replace(">", "&gt;")
+    return text
+
+
+def ensure_closing_delimiters(text: str) -> str:
     """
     Ensures that if an opening ` or ``` is found without a matching closing delimiter,
     the missing delimiter is appended to the end of the text.
@@ -46,7 +56,7 @@ def extract_and_convert_code_blocks(text: str):
     return modified_text, code_blocks
 
 
-def reinsert_code_blocks(text: str, code_blocks: dict):
+def reinsert_code_blocks(text: str, code_blocks: dict) -> str:
     """
     Reinserts HTML code blocks into the text, replacing their placeholders.
     """
@@ -65,15 +75,50 @@ def split_by_tag(out_text: str, md_tag: str, html_tag: str) -> str:
     return tag_pattern.sub(r"<{}>\1</{}>".format(html_tag, html_tag), out_text)
 
 
+def combine_blockquotes(text: str) -> str:
+    """
+    Combines multiline blockquotes into a single blockquote.
+    """
+    lines = text.split("\n")
+    combined_lines = []
+    blockquote_lines = []
+    in_blockquote = False
+
+    for line in lines:
+        if line.startswith(">"):
+            in_blockquote = True
+            blockquote_lines.append(line[1:].strip())
+        else:
+            if in_blockquote:
+                combined_lines.append(
+                    "<blockquote>" + " ".join(blockquote_lines) + "</blockquote>"
+                )
+                blockquote_lines = []
+                in_blockquote = False
+            combined_lines.append(line)
+
+    if in_blockquote:
+        combined_lines.append(
+            "<blockquote>" + " ".join(blockquote_lines) + "</blockquote>"
+        )
+
+    return "\n".join(combined_lines)
+
+
 def telegram_format(text: str) -> str:
     """
     Converts markdown in the provided text to HTML supported by Telegram.
     """
+    # Step 0: Combine blockquotes
+    text = combine_blockquotes(text)
 
-    # Step 1: Extract and convert code blocks first
+    # Step 1: Convert HTML reserved symbols
+    text = convert_html_chars(text)
+
+    # Step 2: Extract and convert code blocks first
     output, code_blocks = extract_and_convert_code_blocks(text)
 
-    # Step 2: Escape HTML special characters in the output text
+    # Step 3: Escape HTML special characters in the output text
     output = output.replace("<", "&lt;").replace(">", "&gt;")
 
     # Inline code
@@ -89,12 +134,25 @@ def telegram_format(text: str) -> str:
     output = split_by_tag(output, "_", "i")
     output = split_by_tag(output, "*", "i")
     output = split_by_tag(output, "~~", "s")
-    output = re.sub(r'【[^】]+】', '', output)
-    output = re.sub(r"\[(.*?)\]\((.*?)\)", r'<a href="\2">\1</a>', output)  # Links
-    output = re.sub(r"^\s*[\-\*] (.+)", r"• \1", output, flags=re.MULTILINE)  # Lists
+
+    # Remove storage links
+    output = re.sub(r"【[^】]+】", "", output)
+
+    # Convert links
+    output = re.sub(r"\[(.*?)\]\((.*?)\)", r'<a href="\2">\1</a>', output)
+
+    # Convert lists
+    output = re.sub(r"^\s*[\-\*] (.+)", r"• \1", output, flags=re.MULTILINE)
+
+    # Convert headings
     output = re.sub(r"^\s*#+ (.+)", r"<b>\1</b>", output, flags=re.MULTILINE)
 
     # Step 4: Reinsert the converted HTML code blocks
     output = reinsert_code_blocks(output, code_blocks)
-    format = "HTML"  # Assuming the format is always HTML. Without this pytest crashes
-    return output, format
+
+    # Step 5: Remove blockquote escaping
+    output = output.replace("&lt;blockquote&gt;", "<blockquote>").replace(
+        "&lt;/blockquote&gt;", "</blockquote>"
+    )
+
+    return output
