@@ -1,5 +1,5 @@
 from chatgpt_parser import split_by_tag, telegram_format
-
+import pytest
 
 def test_split_by_tag_bold():
     text = "This is **bold** text"
@@ -185,3 +185,17 @@ def test_inline_code_within_lists():
     assert (
         output.strip() == expected_output.strip() and format == "HTML"
     ), "Failed handling inline code within lists"
+
+def test_vector_storage_links_trim():
+    input_text = """
+- List item with `code`
+* Another `code` item【4:0†source】
+"""
+    expected_output = """
+• List item with <code>code</code>
+• Another <code>code</code> item
+"""
+    output, format = telegram_format(input_text)
+    assert (
+        output.strip() == expected_output.strip() and format == "HTML"
+    ), "Failed trim storage links"
