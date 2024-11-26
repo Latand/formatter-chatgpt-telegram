@@ -40,7 +40,7 @@ def telegram_format(text: str) -> str:
     output = re.sub(r"【[^】]+】", "", output)
 
     # Convert links
-    output = re.sub(r"!?\[(.*?)\]\((.*?)\)", r'<a href="\2">\1</a>', output)
+    output = re.sub(r"(?<!\!)\[((?:[^\[\]]|\[.*?\])*)\]\((.*?)\)", r'<a href="\2">\1</a>', output)
 
     # Convert headings
     output = re.sub(r"^\s*#+ (.+)", r"<b>\1</b>", output, flags=re.MULTILINE)
