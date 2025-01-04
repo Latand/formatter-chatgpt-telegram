@@ -573,3 +573,86 @@ This is <i>italic</i> text with equation 2 * 2 = 4"""
 
     output = telegram_format(input_text)
     assert output.strip() == expected_output.strip(), f"Output was: {output}"
+
+
+# ----------------------------------------------------------------------------------------
+# New, more comprehensive and edge-case test methods begin here
+# ----------------------------------------------------------------------------------------
+
+
+def test_empty_string():
+    """Check behavior with an empty string."""
+    input_text = ""
+    output = telegram_format(input_text)
+    assert output == ""
+
+
+def test_spaces_only():
+    """Check behavior with a string that has only spaces."""
+    input_text = "    "
+    output = telegram_format(input_text)
+    # Should either remain blank or just be those spaces (strip() might remove them)
+    assert output.strip() == ""
+
+
+def test_asterisk_in_parentheses():
+    """Edge case with asterisk in parentheses."""
+    input_text = "(2*3) is an equation, but *italic* text is separate."
+    expected_output = "(2*3) is an equation, but <i>italic</i> text is separate."
+    output = telegram_format(input_text)
+    assert output == expected_output
+
+
+def test_underscore_in_non_italic_context():
+    """Edge case with underscores that should not convert to italic."""
+    input_text = "This_variable should remain, but _italic_ should convert."
+    expected_output = "This_variable should remain, but <i>italic</i> should convert."
+    output = telegram_format(input_text)
+    assert output == expected_output
+
+
+def test_code_block_mixed_with_unescaped_html():
+    """Ensure code block remains escaped but outside text is processed normally."""
+    input_text = """
+Some <div>stuff</div> here.
+```
+<html><body>Unescaped?</body></html>
+```
+More text with *italic*.
+"""
+    expected_output = """
+Some &lt;div&gt;stuff&lt;/div&gt; here.
+<pre><code>&lt;html&gt;&lt;body&gt;Unescaped?&lt;/body&gt;&lt;/html&gt;
+</code></pre>
+More text with <i>italic</i>.
+"""
+    output = telegram_format(input_text)
+    assert output.strip() == expected_output.strip()
+
+
+def test_equation_with_asterisks_and_italics_combined():
+    """More advanced check: combine equations and true italics side by side."""
+    input_text = "2*x + 3*y = 10, and *italic* is separate."
+    expected_output = "2*x + 3*y = 10, and <i>italic</i> is separate."
+    output = telegram_format(input_text)
+    assert output == expected_output
+
+
+def test_inline_code_with_asterisk_and_underscore():
+    """Ensure that `*` and `_` inside inline code are not interpreted as markdown."""
+    input_text = "Here is `code_with_*_asterisk` outside of `code_with__underscore__`"
+    expected_output = "Here is <code>code_with_*_asterisk</code> outside of <code>code_with__underscore__</code>"
+    output = telegram_format(input_text)
+    assert output == expected_output
+
+
+def test_heading_followed_by_equation():
+    """Check heading usage right before an equation line."""
+    input_text = """# MyHeading
+2*x + y = 4
+"""
+    # Heading should become <b>MyHeading</b>, equation line remains as is
+    expected_output = """<b>MyHeading</b>
+2*x + y = 4"""
+    output = telegram_format(input_text)
+    assert output.strip() == expected_output.strip(), f"Got: {output}"
