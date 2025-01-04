@@ -5,3 +5,8 @@ __pycache__/
 .venv/
 .idea/
 .vscode/
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/

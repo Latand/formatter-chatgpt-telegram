@@ -1,3 +1,4 @@
+from chatgpt_md_converter.extractors import ensure_closing_delimiters
 from chatgpt_md_converter.telegram_formatter import telegram_format
 
 
@@ -64,7 +65,18 @@ for i in range(3):
 
 [Link](http://example.com)
 """
-    expected_output = """<b>Heading</b>\nThis is a test of <b>bold</b>, <u>underline</u>, and <code>inline code</code>.\n• Item 1\n• Item 2\n\n<pre><code class="language-python">for i in range(3):\n    print(i)\n</code></pre>\n\n<a href="http://example.com">Link</a>\n"""
+    expected_output = """
+<b>Heading</b>
+This is a test of <b>bold</b>, <u>underline</u>, and <code>inline code</code>.
+• Item 1
+• Item 2
+
+<pre><code class="language-python">for i in range(3):
+    print(i)
+</code></pre>
+
+<a href="http://example.com">Link</a>
+"""
     output = telegram_format(input_text)
     assert (
         output.strip() == expected_output.strip()
@@ -281,7 +293,7 @@ def test_md_large_example():
    - Item 2
      - Subitem 1
      - Subitem 2
-   
+
    - **Ordered List:**
 
    1. First item
@@ -349,7 +361,7 @@ def example_function():
    • Item 2
      • Subitem 1
      • Subitem 2
-   
+
    • <b>Ordered List:</b>
 
    1. First item
@@ -396,3 +408,108 @@ Here is some <code>inline code</code>.
     assert (
         output.strip() == expected_output.strip()
     ), "Failed handling large markdown example"
+
+
+def test_unclosed_single_backtick():
+    """Test that a single unclosed backtick is properly handled"""
+    text = "Here is some `code without closing"
+    result = ensure_closing_delimiters(text)
+    assert result == "Here is some `code without closing`"
+
+
+def test_unclosed_triple_backtick():
+    """Test that unclosed triple backticks are properly handled"""
+    text = "Here is some ```code without closing"
+    result = ensure_closing_delimiters(text)
+    assert result == "Here is some ```code without closing```"
+
+
+def test_bracket_link_with_additional_text():
+    """
+    Ensures that text like '[OtherText] [Title](Link)' doesn't
+    merge 'OtherText' and 'Title' into the <a> tag text.
+    """
+    input_text = "[OtherText] [Title](https://example.com)"
+    output = telegram_format(input_text)
+    expected_output = '[OtherText] <a href="https://example.com">Title</a>'
+    assert output == expected_output, f"Output was: {output}"
+
+
+def test_heading_formatting_with_newlines():
+    """
+    Checks that headings #, ##, etc. are properly wrapped in <b> tags.
+    """
+    input_text = """# Heading1
+Some text
+## Heading2
+More text"""
+    output = telegram_format(input_text)
+    lines = output.splitlines()
+
+    # Check that headings are properly formatted with <b> tags
+    assert "<b>Heading1</b>" in output
+    assert "<b>Heading2</b>" in output
+
+    # Check that the order is preserved
+    assert lines[0] == "<b>Heading1</b>"
+    assert lines[1] == "Some text"
+    assert lines[2] == "<b>Heading2</b>"
+    assert lines[3] == "More text"
+
+
+def test_list_formatting_with_newlines():
+    """
+    Checks that list items (starting with '-' or '*') become bullet points,
+    each on its own line with proper spacing.
+    """
+    input_text = """- Item one
+- Item two
+* Item three
+Some text
+- Item four"""
+    output = telegram_format(input_text)
+    lines = [line.strip() for line in output.splitlines() if line.strip()]
+
+    # Check that all items are properly converted to bullets
+    assert "• Item one" in lines
+    assert "• Item two" in lines
+    assert "• Item three" in lines
+    assert "• Item four" in lines
+
+    # Check that non-list text is preserved
+    assert "Some text" in lines
+
+    # Verify the order is maintained
+    bullet_lines = [line for line in lines if line.startswith("•")]
+    assert len(bullet_lines) == 4
+    assert bullet_lines[0] == "• Item one"
+    assert bullet_lines[1] == "• Item two"
+    assert bullet_lines[2] == "• Item three"
+    assert bullet_lines[3] == "• Item four"
+
+
+def test_preserve_other_brackets():
+    """
+    Ensures that other bracketed text not forming a valid link is preserved literally.
+    """
+    input_text = "Look at [this], but [not a link] something else."
+    output = telegram_format(input_text)
+    assert "[this]" in output
+    assert "[not a link]" in output
+    assert "<a href=" not in output
+
+
+def test_link_with_nested_brackets():
+    """Test that links with nested brackets in the text are handled correctly"""
+    input_text = "[Link [with brackets]](https://example.com)"
+    output = telegram_format(input_text)
+    expected_output = '<a href="https://example.com">Link [with brackets]</a>'
+    assert output == expected_output, f"Output was: {output}"
+
+
+def test_link_with_spaces():
+    """Test that links with spaces are handled correctly"""
+    input_text = "[OtherText] [Title](Link)"
+    output = telegram_format(input_text)
+    expected_output = '[OtherText] <a href="Link">Title</a>'
+    assert output == expected_output, f"Output was: {output}"

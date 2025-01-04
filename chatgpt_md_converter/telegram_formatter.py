@@ -1,4 +1,5 @@
 import re
+
 from .converters import convert_html_chars, split_by_tag
 from .extractors import extract_and_convert_code_blocks, reinsert_code_blocks
 from .formatters import combine_blockquotes
@@ -29,24 +30,25 @@ def telegram_format(text: str) -> str:
     output = re.sub(r"\_\_\_(.*?)\_\_\_", r"<u><i>\1</i></u>", output)
 
     # Process markdown formatting tags (bold, underline, italic, strikethrough)
-    # and convert them to their respective HTML tags
     output = split_by_tag(output, "**", "b")
     output = split_by_tag(output, "__", "u")
     output = split_by_tag(output, "_", "i")
     output = split_by_tag(output, "*", "i")
     output = split_by_tag(output, "~~", "s")
 
-    # Remove storage links
+    # Remove storage links (Vector storage placeholders like 【4:0†source】)
     output = re.sub(r"【[^】]+】", "", output)
 
-    # Convert links
-    output = re.sub(r"!?\[(.*?)\]\((.*?)\)", r'<a href="\2">\1</a>', output)
+    # More precise pattern for capturing Markdown links and images
+    # Handles nested brackets in link text and converts both links and images to <a> tags
+    link_pattern = r"(?:!?)\[((?:[^\[\]]|\[.*?\])*)\]\(([^)]+)\)"
+    output = re.sub(link_pattern, r'<a href="\2">\1</a>', output)
 
-    # Convert headings
-    output = re.sub(r"^\s*#+ (.+)", r"<b>\1</b>", output, flags=re.MULTILINE)
+    # Convert headings (H1-H6)
+    output = re.sub(r"^(#{1,6})\s+(.+)$", r"<b>\2</b>", output, flags=re.MULTILINE)
 
-    # Convert unordered lists, preserving indentation
-    output = re.sub(r"^(\s*)[\-\*] (.+)", r"\1• \2", output, flags=re.MULTILINE)
+    # Convert unordered lists
+    output = re.sub(r"^(\s*)[\-\*]\s+(.+)$", r"\1• \2", output, flags=re.MULTILINE)
 
     # Step 4: Reinsert the converted HTML code blocks
     output = reinsert_code_blocks(output, code_blocks)
@@ -54,4 +56,7 @@ def telegram_format(text: str) -> str:
     # Step 5: Remove blockquote escaping
     output = remove_blockquote_escaping(output)
 
-    return output
+    # Clean up multiple consecutive newlines, but preserve intentional spacing
+    output = re.sub(r"\n{3,}", "\n\n", output)
+
+    return output.strip()
