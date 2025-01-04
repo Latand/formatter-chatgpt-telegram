@@ -141,7 +141,6 @@ def test_code_block_within_bold_text():
 
 def test_triple_backticks_with_nested_markdown():
     input_text = "```python\n**bold text** and __underline__ in code block```"
-    # Expecting the markdown syntax to be ignored within the code block
     expected_output = '<pre><code class="language-python">**bold text** and __underline__ in code block</code></pre>'
     output = telegram_format(input_text)
     assert (
@@ -151,7 +150,6 @@ def test_triple_backticks_with_nested_markdown():
 
 def test_unmatched_code_delimiters():
     input_text = "This has an `unmatched code delimiter."
-    # Expecting original input as output due to the unmatched delimiter
     expected_output = "This has an <code>unmatched code delimiter.</code>"
     output = telegram_format(input_text)
     assert output == expected_output, "Failed handling unmatched code delimiters"
@@ -442,15 +440,13 @@ def test_heading_formatting_with_newlines():
     input_text = """# Heading1
 Some text
 ## Heading2
-More text"""
+More text
+"""
     output = telegram_format(input_text)
     lines = output.splitlines()
 
-    # Check that headings are properly formatted with <b> tags
     assert "<b>Heading1</b>" in output
     assert "<b>Heading2</b>" in output
-
-    # Check that the order is preserved
     assert lines[0] == "<b>Heading1</b>"
     assert lines[1] == "Some text"
     assert lines[2] == "<b>Heading2</b>"
@@ -470,16 +466,12 @@ Some text
     output = telegram_format(input_text)
     lines = [line.strip() for line in output.splitlines() if line.strip()]
 
-    # Check that all items are properly converted to bullets
     assert "• Item one" in lines
     assert "• Item two" in lines
     assert "• Item three" in lines
     assert "• Item four" in lines
-
-    # Check that non-list text is preserved
     assert "Some text" in lines
 
-    # Verify the order is maintained
     bullet_lines = [line for line in lines if line.startswith("•")]
     assert len(bullet_lines) == 4
     assert bullet_lines[0] == "• Item one"
@@ -513,3 +505,71 @@ def test_link_with_spaces():
     output = telegram_format(input_text)
     expected_output = '[OtherText] <a href="Link">Title</a>'
     assert output == expected_output, f"Output was: {output}"
+
+
+def test_ukrainian_bullet_points():
+    input_text = """Звісно, ось список цікавих речей у форматі Markdown:
+
+*  **Парадокс кота Шредінгера:** Чи може кіт бути одночасно живим і мертвим? 🤔
+*  **Ефект метелика:** Маленька зміна може мати великі наслідки. 🦋
+*  **Теорія струн:** Чи є наш всесвіт просто вібрацією струн? 🎶
+*  **Темна матерія та темна енергія:** Що складає 95% всесвіту? 🌌
+*  **Квантова заплутаність:** Чи можуть два об'єкти бути зв'язані на відстані? 🔗
+*  **Соліпсизм:** Чи існує щось, крім моєї свідомості? 🤨
+*  **Парадокс Фермі:** Де всі інші інопланетяни? 👽
+*  **Симуляційна гіпотеза:** Чи живемо ми в симуляції? 💻
+*  **Ефект Даннінга-Крюгера:** Чому некомпетентні люди переоцінюють себе? 🤓
+*  **Когнітивні спотворення:** Як наш мозок обманює нас? 🤯
+"""
+
+    expected_output = """Звісно, ось список цікавих речей у форматі Markdown:
+
+• <b>Парадокс кота Шредінгера:</b> Чи може кіт бути одночасно живим і мертвим? 🤔
+• <b>Ефект метелика:</b> Маленька зміна може мати великі наслідки. 🦋
+• <b>Теорія струн:</b> Чи є наш всесвіт просто вібрацією струн? 🎶
+• <b>Темна матерія та темна енергія:</b> Що складає 95% всесвіту? 🌌
+• <b>Квантова заплутаність:</b> Чи можуть два об'єкти бути зв'язані на відстані? 🔗
+• <b>Соліпсизм:</b> Чи існує щось, крім моєї свідомості? 🤨
+• <b>Парадокс Фермі:</b> Де всі інші інопланетяни? 👽
+• <b>Симуляційна гіпотеза:</b> Чи живемо ми в симуляції? 💻
+• <b>Ефект Даннінга-Крюгера:</b> Чому некомпетентні люди переоцінюють себе? 🤓
+• <b>Когнітивні спотворення:</b> Як наш мозок обманює нас? 🤯
+"""
+
+    output = telegram_format(input_text)
+    print(output)
+    assert output.strip() == expected_output.strip()
+
+
+def test_asterisk_in_equations():
+    """Test that asterisks in mathematical equations are not converted to italic"""
+    test_cases = [
+        ("2 * 2 = 4", "2 * 2 = 4"),
+        ("x*y + z = 10", "x*y + z = 10"),
+        ("a * b * c", "a * b * c"),
+        ("2*x + 3*y = z", "2*x + 3*y = z"),
+        ("This is *italic* but 2 * 2 is not", "This is <i>italic</i> but 2 * 2 is not"),
+        ("5 * x + *emphasized* text", "5 * x + <i>emphasized</i> text"),
+    ]
+
+    for input_text, expected_output in test_cases:
+        output = telegram_format(input_text)
+        assert (
+            output == expected_output
+        ), f"Failed on input: {input_text}, got: {output}"
+
+
+def test_complex_equations_with_asterisk():
+    """Test more complex mathematical expressions with asterisks"""
+    input_text = """The formula is:
+f(x) = 2*x + 3*y
+g(x) = x * (y + z)
+This is *italic* text with equation 2 * 2 = 4
+"""
+    expected_output = """The formula is:
+f(x) = 2*x + 3*y
+g(x) = x * (y + z)
+This is <i>italic</i> text with equation 2 * 2 = 4"""
+
+    output = telegram_format(input_text)
+    assert output.strip() == expected_output.strip(), f"Output was: {output}"

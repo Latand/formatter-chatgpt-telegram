@@ -26,3 +26,14 @@ def combine_blockquotes(text: str) -> str:
         )
 
     return "\n".join(combined_lines)
+
+
+def fix_asterisk_equations(text: str) -> str:
+    """
+    Replaces numeric expressions with '*' in them with '×'
+    to avoid accidental italic formatting.
+    e.g. '6*8' -> '6×8', '6 * 8' -> '6×8'
+    """
+    import re
+    eq_pattern = re.compile(r'(\d+)\s*\*\s*(\d+)')
+    return eq_pattern.sub(r'\1×\2', text)
