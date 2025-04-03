@@ -2,19 +2,33 @@
 
 ## Overview
 
-This project provides a solution for converting Markdown formatted text into HTML markup supported by the Telegram Bot API, specifically tailored for use in ChatGPT bots developed with the OpenAI API. It includes features for handling various Markdown elements and ensures proper tag closure, making it suitable for streaming mode applications.
+This project provides a solution for converting Telegram-style Markdown formatted text into HTML markup supported by the Telegram Bot API, specifically tailored for use in ChatGPT bots developed with the OpenAI API. It includes features for handling various Markdown elements and ensures proper tag closure, making it suitable for streaming mode applications.
 
 ## Features
 
-- Converts Markdown syntax to Telegram-compatible HTML.
-- Supports inline code, bold, italic, underline, and strikethrough formatting.
-- Supports spoiler tags with `||text||` syntax.
-- Handles nested bold and italic formatting.
-- Converts Markdown links and lists to their HTML equivalents.
-- Processes code blocks with optional language specification, preserving formatting within `<pre><code>` tags.
-- Supports regular blockquotes (`>`) and expandable blockquotes (`**>`) for Telegram.
-- Automatically appends missing closing delimiters for code blocks.
-- Escapes HTML special characters to prevent unwanted HTML rendering outside code blocks.
+- Converts Telegram-style Markdown syntax to Telegram-compatible HTML.
+- Supports inline code formatting with single backticks (\`code\`)
+- Supports text styling:
+  - **bold** with `**text**`
+  - _italic_ with `*text*` or `_text_`
+  - **underline** with `__text__`
+  - ~~strikethrough~~ with `~~text~~`
+  - ||spoiler|| with `||text||`
+- Handles nested text styling (e.g. **bold _italic_**)
+- Converts Markdown links with `[text](URL)` syntax
+- Processes code blocks with optional language specification:
+  ````
+  ```python
+  your code here
+  ````
+  ```
+
+  ```
+- Supports blockquotes:
+  - Regular blockquotes with `> text`
+  - Expandable blockquotes with `**> text`
+- Automatically appends missing closing delimiters for code blocks
+- Escapes HTML special characters to prevent unwanted HTML rendering outside code blocks
 
 ## Usage
 
@@ -46,7 +60,7 @@ from chatgpt_md_converter import telegram_format
 # Basic formatting
 text = """
 Here is some **bold**, __underline__, and `inline code`.
-This is a ||spoiler text||.
+This is a ||spoiler text|| and *italic*.
 
 ```python
 print('Hello, world!')
@@ -61,7 +75,7 @@ blockquote_text = """
 > Regular blockquote
 > Multiple lines
 
-\*\*>Expandable blockquote
+\*\*> Expandable blockquote
 
 > Hidden by default
 > Multiple lines
@@ -73,7 +87,22 @@ formatted_blockquote = telegram_format(blockquote_text)
 print(formatted_text)
 print(formatted_blockquote)
 
-```
+````
+
+Output:
+```html
+Here is some <b>bold</b>, <u>underline</u>, and <code>inline code</code>.
+This is a <span class="tg-spoiler">spoiler text</span> and <i>italic</i>.
+
+<pre><code class="language-python">print('Hello, world!')</code></pre>
+
+<blockquote>Regular blockquote
+Multiple lines</blockquote>
+
+<blockquote expandable>Expandable blockquote
+Hidden by default
+Multiple lines</blockquote>
+````
 
 ## Requirements
 
@@ -83,4 +112,7 @@ print(formatted_blockquote)
 ## Contribution
 
 Feel free to contribute to this project by submitting pull requests or opening issues for bugs, feature requests, or improvements.
+
+```
+
 ```
