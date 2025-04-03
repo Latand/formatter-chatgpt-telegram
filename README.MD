@@ -105,7 +105,7 @@ Feel free to contribute to this project by submitting pull requests or opening i
 > **Note**:
 > Since standard Markdown doesn't include Telegram-specific features like spoilers (`||text||`) and expandable blockquotes (`**> text`), you'll need to explicitly instruct LLMs to use these formats. Here's a suggested prompt addition to include in your system message or initial instructions:
 
-````md
+```
 When formatting your responses for Telegram, please use these special formatting conventions:
 
 1. For content that should be hidden as a spoiler (revealed only when users click):
@@ -113,7 +113,7 @@ When formatting your responses for Telegram, please use these special formatting
    Example: This is visible, but ||this is hidden until clicked||.
 
 2. For lengthy explanations or optional content that should be collapsed:
-   Use: \*\*> Expandable section title
+   Use: **> Expandable section title
 
    > Content line 1
    > Content line 2
@@ -142,6 +142,6 @@ Use expandable blockquotes for:
 - Optional reading
 - Technical details
 - Additional context not needed by all users
-````
+```
 
 You can add this prompt to your system message when initializing your ChatGPT interactions to ensure the model properly formats content for optimal display in Telegram.
