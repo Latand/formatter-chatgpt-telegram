@@ -656,3 +656,67 @@ def test_heading_followed_by_equation():
 2*x + y = 4"""
     output = telegram_format(input_text)
     assert output.strip() == expected_output.strip(), f"Got: {output}"
+
+
+def test_spoiler_conversion():
+    input_text = "This contains a ||spoiler|| text"
+    expected_output = 'This contains a <span class="tg-spoiler">spoiler</span> text'
+    output = telegram_format(input_text)
+    assert (
+        output == expected_output
+    ), 'Failed converting || to <span class="tg-spoiler"> tags'
+
+
+def test_spoiler_with_formatting():
+    input_text = "This contains a ||*italic spoiler*|| text"
+    expected_output = (
+        'This contains a <span class="tg-spoiler"><i>italic spoiler</i></span> text'
+    )
+    output = telegram_format(input_text)
+    assert (
+        output == expected_output
+    ), "Failed converting nested formatting within spoiler tags"
+
+
+def test_expandable_blockquote_conversion():
+    input_text = """**>The expandable block quotation started
+>Expandable block quotation continued
+>The last line of the expandable block quotation"""
+    expected_output = """<blockquote expandable>The expandable block quotation started
+Expandable block quotation continued
+The last line of the expandable block quotation</blockquote>"""
+    output = telegram_format(input_text)
+    assert output == expected_output, "Failed converting expandable blockquote"
+
+
+def test_regular_and_expandable_blockquotes():
+    input_text = """>Regular blockquote
+>Regular blockquote continued
+
+**>Expandable blockquote
+>Expandable blockquote continued"""
+    expected_output = """<blockquote>Regular blockquote
+Regular blockquote continued</blockquote>
+
+<blockquote expandable>Expandable blockquote
+Expandable blockquote continued</blockquote>"""
+    output = telegram_format(input_text)
+    assert (
+        output.strip() == expected_output.strip()
+    ), "Failed handling mixed blockquote types"
+
+
+def test_blockquote_with_spoiler():
+    input_text = """>Regular blockquote with ||spoiler|| text
+>Continued"""
+    expected_output = """<blockquote>Regular blockquote with <span class="tg-spoiler">spoiler</span> text
+Continued</blockquote>"""
+    output = telegram_format(input_text)
+    assert output == expected_output, "Failed handling spoiler inside blockquote"
+
+
+def test_multiple_spoilers():
+    input_text = "First ||spoiler|| and then another ||spoiler with *italic*||"
+    expected_output = 'First <span class="tg-spoiler">spoiler</span> and then another <span class="tg-spoiler">spoiler with <i>italic</i></span>'
+    output = telegram_format(input_text)
+    assert output == expected_output, "Failed handling multiple spoilers"

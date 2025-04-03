@@ -3,7 +3,7 @@ import re
 from .converters import convert_html_chars, split_by_tag
 from .extractors import extract_and_convert_code_blocks, reinsert_code_blocks
 from .formatters import combine_blockquotes
-from .helpers import remove_blockquote_escaping
+from .helpers import remove_blockquote_escaping, remove_spoiler_escaping
 
 
 def extract_inline_code_snippets(text: str):
@@ -54,22 +54,19 @@ def telegram_format(text: str) -> str:
     # Convert unordered lists (do this before italic detection so that leading '*' is recognized as bullet)
     output = re.sub(r"^(\s*)[\-\*]\s+(.+)$", r"\1• \2", output, flags=re.MULTILINE)
 
-    # Remove this old inline code replacement — now handled by extract_inline_code_snippets()
-    # output = re.sub(r"`(.*?)`", r"<code>\1</code>", output)
-
     # Nested Bold and Italic
     output = re.sub(r"\*\*\*(.*?)\*\*\*", r"<b><i>\1</i></b>", output)
     output = re.sub(r"\_\_\_(.*?)\_\_\_", r"<u><i>\1</i></u>", output)
 
-    # Process markdown for bold (**), underline (__), strikethrough (~~)
+    # Process markdown for bold (**), underline (__), strikethrough (~~), and spoiler (||)
     output = split_by_tag(output, "**", "b")
     output = split_by_tag(output, "__", "u")
     output = split_by_tag(output, "~~", "s")
+    output = split_by_tag(output, "||", 'span class="tg-spoiler"')
 
     # Custom approach for single-asterisk italic
     italic_pattern = re.compile(
-        r"(?<![A-Za-z0-9])\*(?=[^\s])(.*?)(?<!\s)\*(?![A-Za-z0-9])",
-        re.DOTALL
+        r"(?<![A-Za-z0-9])\*(?=[^\s])(.*?)(?<!\s)\*(?![A-Za-z0-9])", re.DOTALL
     )
     output = italic_pattern.sub(r"<i>\1</i>", output)
 
@@ -85,7 +82,9 @@ def telegram_format(text: str) -> str:
 
     # Step 3.5: Reinsert inline code snippets, escaping special chars in code content
     for placeholder, snippet in inline_code_snippets.items():
-        escaped_snippet = snippet.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        escaped_snippet = (
+            snippet.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        )
         output = output.replace(placeholder, f"<code>{escaped_snippet}</code>")
 
     # Step 4: Reinsert the converted triple-backtick code blocks
@@ -93,6 +92,9 @@ def telegram_format(text: str) -> str:
 
     # Step 5: Remove blockquote escaping
     output = remove_blockquote_escaping(output)
+
+    # Step 6: Remove spoiler tag escaping
+    output = remove_spoiler_escaping(output)
 
     # Clean up multiple consecutive newlines, but preserve intentional spacing
     output = re.sub(r"\n{3,}", "\n\n", output)
