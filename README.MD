@@ -76,16 +76,19 @@ print(formatted_blockquote)
 
 ### Output:
 
-```html
-Here is some <b>bold</b>, <u>underline</u>, and <code>inline code</code>. This
-is a <span class="tg-spoiler">spoiler text</span> and <i>italic</i>. Code
-example: print('Hello, world!')
+```
+Here is some <b>bold</b>, <u>underline</u>, and <code>inline code</code>.
+This is a <span class="tg-spoiler">spoiler text</span> and <i>italic</i>.
 
-<blockquote>Regular blockquote Multiple lines</blockquote>
+Code example:
+print('Hello, world!')
 
-<blockquote expandable>
-  Expandable blockquote Hidden by default Multiple lines
-</blockquote>
+<blockquote>Regular blockquote
+Multiple lines</blockquote>
+
+<blockquote expandable>Expandable blockquote
+Hidden by default
+Multiple lines</blockquote>
 ```
 
 ## Requirements
@@ -97,6 +100,48 @@ example: print('Hello, world!')
 
 Feel free to contribute to this project by submitting pull requests or opening issues for bugs, feature requests, or improvements.
 
-```
+## Prompting LLMs for Telegram-Specific Formatting
 
-```
+> **Note**:
+> Since standard Markdown doesn't include Telegram-specific features like spoilers (`||text||`) and expandable blockquotes (`**> text`), you'll need to explicitly instruct LLMs to use these formats. Here's a suggested prompt addition to include in your system message or initial instructions:
+
+````md
+When formatting your responses for Telegram, please use these special formatting conventions:
+
+1. For content that should be hidden as a spoiler (revealed only when users click):
+   Use: ||spoiler content here||
+   Example: This is visible, but ||this is hidden until clicked||.
+
+2. For lengthy explanations or optional content that should be collapsed:
+   Use: \*\*> Expandable section title
+
+   > Content line 1
+   > Content line 2
+   > (Each line of the expandable blockquote should start with ">")
+
+3. Continue using standard markdown for other formatting:
+   - **bold text**
+   - _italic text_ or _italic text_
+   - **underlined text**
+   - ~~strikethrough~~
+   - `inline code`
+   - `code blocks`
+   - [link text](URL)
+
+Apply spoilers for:
+
+- Solution reveals
+- Potential plot spoilers
+- Sensitive information
+- Surprising facts
+
+Use expandable blockquotes for:
+
+- Detailed explanations
+- Long examples
+- Optional reading
+- Technical details
+- Additional context not needed by all users
+````
+
+You can add this prompt to your system message when initializing your ChatGPT interactions to ensure the model properly formats content for optimal display in Telegram.
