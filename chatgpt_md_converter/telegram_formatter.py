@@ -35,18 +35,14 @@ def telegram_format(text: str) -> str:
     # Step 0: Combine blockquotes
     text = combine_blockquotes(text)
 
-    # Step 1: Convert HTML reserved symbols
-    text = convert_html_chars(text)
-
-    # Step 2: Extract and convert triple-backtick code blocks first
+    # Step 1: Extract and convert triple-backtick code blocks first
     output, triple_code_blocks = extract_and_convert_code_blocks(text)
 
-    # Step 2.5: Extract inline code snippets (single backticks) so they won't be parsed as italics, etc.
+    # Step 2: Extract inline code snippets
     output, inline_code_snippets = extract_inline_code_snippets(output)
 
-    # Step 3: Escape HTML special characters in the output text (for non-code parts)
-    # We do NOT want to escape what's inside placeholders here, only what's outside code placeholders.
-    output = output.replace("<", "&lt;").replace(">", "&gt;")
+    # Step 3: Convert HTML reserved symbols in the text (not in code blocks)
+    output = convert_html_chars(output)
 
     # Convert headings (H1-H6)
     output = re.sub(r"^(#{1,6})\s+(.+)$", r"<b>\2</b>", output, flags=re.MULTILINE)
@@ -80,20 +76,21 @@ def telegram_format(text: str) -> str:
     link_pattern = r"(?:!?)\[((?:[^\[\]]|\[.*?\])*)\]\(([^)]+)\)"
     output = re.sub(link_pattern, r'<a href="\2">\1</a>', output)
 
-    # Step 3.5: Reinsert inline code snippets, escaping special chars in code content
+    # Step 4: Reinsert inline code snippets, applying HTML escaping to the content
     for placeholder, snippet in inline_code_snippets.items():
+        # Apply HTML escaping to the content of inline code
         escaped_snippet = (
             snippet.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         )
         output = output.replace(placeholder, f"<code>{escaped_snippet}</code>")
 
-    # Step 4: Reinsert the converted triple-backtick code blocks
+    # Step 5: Reinsert the converted triple-backtick code blocks
     output = reinsert_code_blocks(output, triple_code_blocks)
 
-    # Step 5: Remove blockquote escaping
+    # Step 6: Remove blockquote escaping
     output = remove_blockquote_escaping(output)
 
-    # Step 6: Remove spoiler tag escaping
+    # Step 7: Remove spoiler tag escaping
     output = remove_spoiler_escaping(output)
 
     # Clean up multiple consecutive newlines, but preserve intentional spacing

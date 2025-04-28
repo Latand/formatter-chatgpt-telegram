@@ -27,13 +27,19 @@ def extract_and_convert_code_blocks(text: str):
     def replacer(match):
         language = match.group(1) if match.group(1) else ""
         code_content = match.group(3)
+
+        # Properly escape HTML entities in code content
+        escaped_content = (
+            code_content.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        )
+
         placeholder = f"CODEBLOCKPLACEHOLDER{len(placeholders)}"
         placeholders.append(placeholder)
         if not language:
-            html_code_block = f"<pre><code>{code_content}</code></pre>"
+            html_code_block = f"<pre><code>{escaped_content}</code></pre>"
         else:
             html_code_block = (
-                f'<pre><code class="language-{language}">{code_content}</code></pre>'
+                f'<pre><code class="language-{language}">{escaped_content}</code></pre>'
             )
         return (placeholder, html_code_block)
 

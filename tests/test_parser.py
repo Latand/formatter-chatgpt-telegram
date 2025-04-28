@@ -720,3 +720,13 @@ def test_multiple_spoilers():
     expected_output = 'First <span class="tg-spoiler">spoiler</span> and then another <span class="tg-spoiler">spoiler with <i>italic</i></span>'
     output = telegram_format(input_text)
     assert output == expected_output, "Failed handling multiple spoilers"
+
+
+def test_ukrainian_text_with_inline_code():
+    """Test that Ukrainian text with inline code is properly formatted"""
+    input_text = (
+        """звісно, майстре тестування. ой та зрозуміло `<LAUGH>` що ти тут тестуєш."""
+    )
+    expected_output = """звісно, майстре тестування. ой та зрозуміло <code>&lt;LAUGH&gt;</code> що ти тут тестуєш."""
+    output = telegram_format(input_text)
+    assert output == expected_output, f"Output was: {output}"
